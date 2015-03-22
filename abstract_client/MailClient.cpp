@@ -1,27 +1,133 @@
 #include "MailClient.hpp"
 
-MailClient::MailClient () {
-}
+namespace mail_client {
 
-MailClient::MailClient (p_PP postProvider) : MailClient() {
-    this->setPostProvider(postProvider);
-}
+    // Mail Client Exception methods
+    MailClientException::MailClientException (string message) : exception() {
+        this->message = message;
+    }
 
-MailClient::~MailClient () {
-}
+    const char* MailClientException::what() const throw() {
+        return this->message.c_str();
+    }
 
-void MailClient::signin (string login, string password) {
-    this->postProvider->signin(login, password);
-}
+    // Null Post Provider Exception methods
+    NullPostProviderException::NullPostProviderException () :
+            MailClientException("Post Provider pointer should not be NULL.") {
+    }
 
-strings MailClient::getLettersHeaders () {
-    return this->postProvider->getLettersHeaders();
-}
+    // Closed Connection Exception methods
+    ClosedConnectionException::ClosedConnectionException () :
+                    MailClientException("Connection is needed to be opened.") {
+    }
 
-void MailClient::signout () {
-    this->postProvider->signout();
-}
+    // Closed Connection Exception methods
+    ConnectionError::ConnectionError (string reason) :
+          MailClientException("Can not open connection. Reason: " + reason) {
+    }
 
-void MailClient::setPostProvider (p_PP postProvider) {
-    this->postProvider = postProvider;
+    // Mail Client methods
+    MailClient::MailClient () {
+    }
+
+    MailClient::MailClient (p_PP postProvider) throw(MailClientException) : MailClient() {
+        this->setPostProvider(postProvider);
+    }
+
+    MailClient::~MailClient () {
+    }
+
+    void MailClient::connect (string host, string port)
+                             throw(MailClientException) {
+        try {
+            this->postProvider->connect(host, port);
+        }
+        catch(const PostException& e) {
+            throw ConnectionError(string(e.what()));
+        }
+    }
+
+    void MailClient::signin (string login, string password)
+                            throw(MailClientException) {
+        if (!this->isConnected()) {
+            throw ClosedConnectionException();
+        }
+        try {
+            this->postProvider->signin(login, password);
+        }
+        catch(const PostException& e) {
+            throw MailClientException("An error occured: " + string(e.what()));
+        }
+    }
+
+    void MailClient::sendLogin (string login) throw(MailClientException) {
+        if (!this->isConnected()) {
+            throw ClosedConnectionException();
+        }
+        try {
+            this->postProvider->sendLogin(login);
+        }
+        catch(const PostException& e) {
+            throw MailClientException("An error occured: " + string(e.what()));
+        }
+    }
+
+    void MailClient::sendPassword (string password) throw(MailClientException) {
+        if (!this->isConnected()) {
+            throw ClosedConnectionException();
+        }
+        try {
+            this->postProvider->sendPassword(password);
+        }
+        catch(const PostException& e) {
+            throw MailClientException("An error occured: " + string(e.what()));
+        }
+    }
+
+    strings MailClient::getLettersHeaders () throw(MailClientException) {
+        if (!this->isConnected()) {
+            throw ClosedConnectionException();
+        }
+        try {
+            return this->postProvider->getLettersHeaders();
+        }
+        catch(const PostException& e) {
+            throw MailClientException("An error occured: " + string(e.what()));
+        }
+    }
+
+    void MailClient::signout () throw(MailClientException) {
+        if (!this->isConnected()) {
+            throw ClosedConnectionException();
+        }
+        try {
+            this->postProvider->signout();
+        }
+        catch(const PostException& e) {
+            throw MailClientException("An error occured: " + string(e.what()));
+        }
+    }
+
+    void MailClient::setPostProvider (p_PP postProvider)
+                                     throw(MailClientException) {
+        if (!postProvider) {
+            throw NullPostProviderException();
+        }
+        this->postProvider = postProvider;
+    }
+
+    bool MailClient::isConnected () {
+        if (!this->postProvider) {
+            throw NullPostProviderException();
+        }
+        return this->postProvider->isConnected();
+    }
+
+    bool MailClient::isPasswordRequired () throw(MailClientException) {
+        if (!this->postProvider) {
+            throw NullPostProviderException();
+        }
+        return this->postProvider->isPasswordRequired();
+    }
+
 }

@@ -2,12 +2,23 @@
 #include "../ac_includes.hpp"
 #include <exception>
 
+using namespace transport;
+
 namespace post {
 
     /**
      * Post Provider for POP3 protocol.
      */
     class POP3PostProvider : public post::PostProvider {
+        private:
+            /**
+             * Get IDs of emails to access them in future.
+             * @param result Strings array reference, which will contain IDs.
+             * @throws IncorrectStateException Thrown if state is not
+             * AUTHORIZED.
+             * @throws ConnectionException Thrown if server respond is strange.
+             */
+            void getEmailsIDs (strings& result) throw(PostException);
         protected:
             /**
              * Checks wether mail server response is OK or ERR.

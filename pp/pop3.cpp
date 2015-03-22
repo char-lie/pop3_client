@@ -1,4 +1,7 @@
 #include "pop3.hpp"
+#include <boost/algorithm/string.hpp>
+
+using namespace boost;
 
 namespace post {
     POP3PostProvider::POP3PostProvider () : PostProvider () {
@@ -21,7 +24,7 @@ namespace post {
         string response;
         this->checkState(LOGIN_REQUIRED);
         response = this->send("USER " + login + "\r\n");
-        if (isResponseOK(response)) {
+        if (this->isResponseOK(response)) {
             this->setState(PASSWORD_REQUIRED);
         }
         else {
@@ -33,7 +36,7 @@ namespace post {
         string response;
         this->checkState(PASSWORD_REQUIRED);
         response = this->send("PASS " + password + "\r\n");
-        if (isResponseOK(response)) {
+        if (this->isResponseOK(response)) {
             this->setState(AUTHORIZED);
         }
         else {
@@ -42,13 +45,78 @@ namespace post {
     }
 
     void POP3PostProvider::signout () throw(PostException) {
-        this->send("QUIT\r\n");
+        string response;
+        this->checkState(AUTHORIZED);
+        response = this->send("QUIT\r\n");
+        if (this->isResponseOK(response)) {
+            this->setState(LOGIN_REQUIRED);
+        }
     }
 
+    void POP3PostProvider::getEmailsIDs (strings& result)
+                                        throw(PostException) {
+        string response;
+        result.clear();
+        this->checkState(AUTHORIZED);
+        /**
+         * Get raw list of emails from server.
+         */
+        response = this->send("LIST\r\n", "\r\n.\r\n");
+        if (!this->isResponseOK(response)) {
+            throw ConnectionException("Server responsed negatively. "
+                                      "Reason's unknown.");
+        }
+        strings emailInfo;
+        int emailsCount;
+        try {
+            trim(response);
+            split(emailInfo, response, is_any_of(" "), token_compress_on);
+            emailsCount = stoi(emailInfo[1]);
+        }
+        catch (invalid_argument) {
+            throw ConnectionException("Server response was strange: "
+                                      "can't get emails count.");
+        }
+        catch (out_of_range) {
+            throw ConnectionException("Server response was strange: "
+                                      "you have a huge number of emails.");
+        }
+        /**
+         * Prepare list of emails' IDs.
+         */
+        strings emailsList;
+        split(emailsList, response, is_any_of("\r\n"), token_compress_on);
+        emailsList.erase(emailsList.begin());
+        emailsList.pop_back();
+        string currentHeader;
+        for (string email : emailsList) {
+            trim(email);
+            split(emailInfo, email, is_any_of(" "), token_compress_on);
+            result.push_back(emailInfo[0]);
+        }
+    }
 
     strings POP3PostProvider::getLettersHeaders () throw(PostException) {
         strings strs;
-        strs.push_back("Hello");
+        strings emailsIDs;
+        string response;
+
+        this->checkState(AUTHORIZED);
+
+        this->getEmailsIDs(emailsIDs);
+        string currentHeader;
+        for (string emailID : emailsIDs) {
+            currentHeader = this->send("TOP " + emailID + " 0\r\n",
+                                       "\r\n.\r\n");
+            if (!isResponseOK(currentHeader)) {
+                string message = "Can't get message " + emailID + ". "
+                                 "Maybe connection was lost?";
+                throw ConnectionException(message);
+            }
+            else {
+                strs.push_back(currentHeader);
+            }
+        }
         return strs;
     }
 }

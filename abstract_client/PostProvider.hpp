@@ -7,6 +7,7 @@
 #include "TransportLayerProvider.hpp"
 
 using namespace std;
+using namespace transport;
 
 typedef vector<string> strings;
 
@@ -107,6 +108,24 @@ namespace post {
     };
 
     /**
+     * Connection Error class.
+     */
+    class ConnectionError : public PostException {
+        protected:
+            /**
+             * Error message.
+             */
+            string message;
+        public:
+            /**
+             * Construct.
+             * @param message Error message.
+             */
+            ConnectionError (string message);
+            virtual const char* what() const throw();
+    };
+
+    /**
      * Post Provider class.
      * Abstract class for interacting with email server on application level.
      * Purpose: send commands according to protocol (POP3, IMAP) via
@@ -131,23 +150,37 @@ namespace post {
              * State checking function for throwing exception.
              * Compares actual state (this->state) with required and throws 
              * exception if they're not fit. Otherwise does nothing.
-             * Several states can be passed with binary `or', e.g.:
-             * checkState(LOGIN_REQUIRED | PASSWORD_REQUIRED | AUTHORIZED);
-             * @param required Required state.
+             * Only one state can be passed. If you want to have several
+             * required states, see another function with `int state' parameter.
+             * @param required Required states.
              * @throw IncorrectStateException Thrown if current and required
-             * states are not equal.
+             * states don't intersect.
              */
             void checkState(State required) throw(PostException);
+            /**
+             * State checking function for throwing exception.
+             * Compares actual state (this->state) with required and throws 
+             * exception if they're not fit. Otherwise does nothing.
+             * Several states can be passed with binary `or', e.g.:
+             * checkState(LOGIN_REQUIRED | PASSWORD_REQUIRED | AUTHORIZED).
+             * @param required Required states.
+             * @throw IncorrectStateException Thrown if current and required
+             * states don't intersect (sets `required' state as UNKNOWN).
+             */
+            void checkState(int required) throw(PostException);
             /**
              * Send message via Transport Layer Provider.
              * Allowed in states AUTHORIZED, PASSWORD_REQUIRED, AUTHORIZED
              * (not allowed when DISCONNECTED).
              * @param message The message to send to email server.
+             * @param responseEnding String which indicates end of server
+             * response.
              * @returns Answer of the server.
              * @throws IncorrectStateException Thrown if connection wasn't
              * established
              */
-            string send (string message) throw(PostException);
+            string send (string message, string responseEnding = "\r\n")
+                        throw(PostException);
             /**
              * Checks wether mail server answered OK or not OK.
              * @param response Response to check.
@@ -178,27 +211,32 @@ namespace post {
              * Establish connection with email server.
              * Alowed in state DISCONNECTED.
              * Not allowed if Transport Layer Provider wasn't set.
+             * @param server Server IP or url.
+             * @param port Port to connect to.
              * @throws IncorrectStateException Thrown if connection was already
              * established.
              */
-            void connect () throw(PostException);
+            void connect (string host, string port) throw(PostException);
             /**
              * Sign in to mailbox.
              * Allowed in state LOGIN_REQUIRED.
              * @param login User name.
              * @param password User password.
-             * If password is blank, only user name will be sent.
              * @throws IncorrectStateException Thrown if connection wasn't
              * established or if user is already authorized.
+             * @throws IncorrectAuthorizationDataException Thrown if login
+             * or password (or both) is (are) wrong.
              */
-            virtual void signin (string login, string password = "")
-                    throw(PostException) = 0;
+            virtual void signin (string login, string password)
+                                throw(PostException) = 0;
             /**
              * Send only login. If password required, it should be sent next.
              * Allowed in state LOGIN_REQUIRED.
              * @param login User name.
              * @throws IncorrectStateException Thrown if connection wasn't
              * established or if user is already authorized.
+             * @throws IncorrectAuthorizationDataException Thrown if login
+             * is wrong.
              */
             virtual void sendLogin (string login) throw(PostException) = 0;
             /**
@@ -208,6 +246,8 @@ namespace post {
              * @throws IncorrectStateException Thrown if connection wasn't
              * established, or user name wasn't sent, or if user is already
              * authorized.
+             * @throws IncorrectAuthorizationDataException Thrown if password
+             * is wrong.
              */
             virtual void sendPassword (string password)
                                       throw(PostException) = 0;
@@ -221,6 +261,8 @@ namespace post {
              * Get letters headers.
              * Allowed in state AUTHORIZED.
              * @throws IncorrectStateException Thrown if not authorized.
+             * @return Vector of strings. Each string contains header of one
+             * letter.
              */
             virtual strings getLettersHeaders () throw(PostException) = 0;
             /**
@@ -233,6 +275,17 @@ namespace post {
              */
             void setTransportLayerProvider (p_TLP transportLayerProvider)
                                            throw(PostException);
+            /**
+             * Is Post Provider connected to email server?
+             * @return Returns `true' if connected and `false' otherwise.
+             */
+            bool isConnected ();
+            /**
+             * Check whether password is needed now.
+             * @return Returns `true' if you have to enter password now,
+             * returns `false' otherwise.
+             */
+            bool isPasswordRequired ();
     };
 
     /**
@@ -244,7 +297,7 @@ namespace post {
     string stateToString (State state) throw(IncorrectStateException);
 
     /**
-     * Shortcut to Post Provider shared pointer
+     * Shortcut for Post Provider shared pointer
      */
-    typedef shared_ptr<PostProvider>            p_PP;
+    typedef shared_ptr<PostProvider> p_PP;
 }
