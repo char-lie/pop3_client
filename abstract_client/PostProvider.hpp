@@ -11,24 +11,42 @@ typedef vector<string> strings;
 
 namespace post {
 
-    enum  State {DISCONNECTED       = 0x1,
-                 LOGIN_REQUIRED     = 0x2,
-                 PASSWORD_REQUIRED  = 0x4,
-                 AUTHORIZED         = 0x8};
+    /**
+     * Post Provider states
+     */
+    enum  State {
+        DISCONNECTED       = 0x1, // Not connected to email server
+        LOGIN_REQUIRED     = 0x2, // Connected, but login required
+        PASSWORD_REQUIRED  = 0x4, // Login sent, password required
+        AUTHORIZED         = 0x8  // Connected and authorized successfully
+    }
 
+    /**
+     * Exception to throw when Post Provider tries to perform action in wrong
+     * state
+     */
     class IncorrectStateException : public exception {
         protected:
+            /**
+             * State which should be. If several are allowed, will contain any.
+             */
             State required;
+            /**
+             * Actual Post Provider state.
+             */
             State actual;
         public:
+            /**
+             * Construct new exception with parameters described earlier.
+             */
             IncorrectStateException (State required, State actual);
     };
 
     class PostProvider {
         protected:
             /**
-             * Current state to know what actions are allowed
-             * and what are restricted.
+             * Current state is needed to know which actions are allowed
+             * and which are restricted.
              */
             State state;
             /**
@@ -48,7 +66,8 @@ namespace post {
             void checkState(State required) throw(IncorrectStateException);
             /**
              * Send message via Transport Layer Provider.
-             * Allowed in state State::AUTHORIZED.
+             * Allowed in states AUTHORIZED, PASSWORD_REQUIRED, AUTHORIZED
+             * (not allowed when DISCONNECTED).
              * @param message The message to send to email server.
              * @returns Answer of the server.
              * @throws IncorrectStateException Thrown if connection wasn't
@@ -67,17 +86,21 @@ namespace post {
              */
             PostProvider (p_TLP transportLayerProvider);
             /**
-             * Destruct this Post Provider.
+             * Destruct this Post Provider:
+             * should sign out (if needed) and close opened connection.
              */
             virtual ~PostProvider ();
             /**
              * Establish connection with email server.
-             * Alowed in state State::DISCONNECTED.
+             * Alowed in state DISCONNECTED.
+             * Not allowed if Transport Layer Provider wasn't set.
+             * @throws IncorrectStateException Thrown if connection was already
+             * established.
              */
-            void connect ();
+            void connect () throw(IncorrectStateException);
             /**
-             * Sign in mailbox.
-             * Allowed in state State::LOGIN_REQUIRED.
+             * Sign in to mailbox.
+             * Allowed in state LOGIN_REQUIRED.
              * @param login User name.
              * @param password User password.
              * If password is blank, only user name will be sent.
@@ -88,7 +111,7 @@ namespace post {
                                 throw(IncorrectStateException) = 0;
             /**
              * Send only login. If password required, it should be sent next.
-             * Allowed in state State::LOGIN_REQUIRED.
+             * Allowed in state LOGIN_REQUIRED.
              * @param login User name.
              * @throws IncorrectStateException Thrown if connection wasn't
              * established or if user is already authorized.
@@ -97,7 +120,7 @@ namespace post {
             //                       throw(IncorrectStateException) = 0;
             /**
              * Send only password if it's needed after login was sent.
-             * Allowed in state State::PASSWORD_REQUIRED
+             * Allowed in state PASSWORD_REQUIRED.
              * @param password User password.
              * @throws IncorrectStateException Thrown if connection wasn't
              * established, or user name wasn't sent, or if user is already
