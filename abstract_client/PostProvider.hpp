@@ -12,23 +12,24 @@ typedef vector<string> strings;
 namespace post {
 
     /**
-     * Post Provider states
+     * Post Provider states.
      */
     enum  State {
-        DISCONNECTED       = 0x1, // Not connected to email server
-        LOGIN_REQUIRED     = 0x2, // Connected, but login required
-        PASSWORD_REQUIRED  = 0x4, // Login sent, password required
-        AUTHORIZED         = 0x8  // Connected and authorized successfully
+        DISCONNECTED       = 0x1, // Not connected to email server.
+        LOGIN_REQUIRED     = 0x2, // Connected, but login required.
+        PASSWORD_REQUIRED  = 0x4, // Login sent, password required.
+        AUTHORIZED         = 0x8  // Connected and authorized successfully.
     }
 
     /**
      * Exception to throw when Post Provider tries to perform action in wrong
-     * state
+     * state.
      */
     class IncorrectStateException : public exception {
         protected:
             /**
-             * State which should be. If several are allowed, will contain any.
+             * State which should be. If several are required, can contain any
+             * of them.
              */
             State required;
             /**
