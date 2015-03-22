@@ -151,4 +151,9 @@ namespace mail_client {
             bool isPasswordRequired () throw(MailClientException);
     };
 
+    /**
+     * Shortcut for Mail Client pointer.
+     */
+    typedef shared_ptr<MailClient> p_MC;
+
 }

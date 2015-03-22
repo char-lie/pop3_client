@@ -1,6 +1,7 @@
 #include "command_line.hpp"
 
 namespace utils {
+
     options_description prepareCommandLineOptions () {
         options_description description("Allowed options");
         description.add_options()
