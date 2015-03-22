@@ -9,6 +9,10 @@ using namespace std;
 
 typedef vector<string> strings;
 
+/**
+ * Namespace which contains features, which are needed for Post Provider,
+ * and itself.
+ */
 namespace post {
 
     /**
@@ -43,6 +47,12 @@ namespace post {
             IncorrectStateException (State required, State actual);
     };
 
+    /**
+     * Post Provider class.
+     * Abstract class for interacting with email server on application level.
+     * Purpose: send commands according to protocol (POP3, IMAP) via
+     * Transport Layer Provider (TCP, UDP) and give results to user.
+     */
     class PostProvider {
         protected:
             /**
@@ -141,5 +151,8 @@ namespace post {
             void    setTransportLayerProvider (p_TLP transportLayerProvider);
     };
 
+    /**
+     * Shortcut to Post Provider shared pointer
+     */
     typedef shared_ptr<PostProvider>            p_PP;
 }
