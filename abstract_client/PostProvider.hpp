@@ -11,7 +11,7 @@ typedef vector<string> strings;
 
 /**
  * Namespace which contains features, which are needed for Post Provider,
- * and itself.
+ * and Post Provider class itself.
  */
 namespace post {
 
@@ -147,8 +147,16 @@ namespace post {
              * Get letters headers.
              */
             virtual strings getLettersHeaders () = 0;
-
-            void    setTransportLayerProvider (p_TLP transportLayerProvider);
+            /**
+             * Set Transport Layer Provider.
+             * Allowed in state DISCONNECTED.
+             * @param transportLayerProvider Transport Layer Provider to send
+             * messages via it.
+             * @throws IncorrectStateException Thrown if Post Provider is
+             * connected via another Transport Layer Provider.
+             */
+            void setTransportLayerProvider (p_TLP transportLayerProvider)
+                                           throw(IncorrectStateException);
     };
 
     /**
