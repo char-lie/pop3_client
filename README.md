@@ -12,10 +12,10 @@ Just use `make all`.
 ## Usage
 
 ```
-Usage: pop3\_client [options]
+Usage: pop3_client [options]
 Allowed options:
   -h [ --help ]            display this help message
   -l [ --login ] arg       username
   -p [ --password ] arg    password (optional)
-  -s [ --server\_name ] arg host:port
+  -s [ --server_name ] arg host:port
 ```
