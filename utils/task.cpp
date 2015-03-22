@@ -37,8 +37,8 @@ namespace utils {
 
     int getMessagesHeaders (const p_MC& mailClient, ostream& out) {
         strings headers = mailClient->getLettersHeaders();
-        for (auto e : headers) {
-            out << e << endl;
+        for (string header : headers) {
+            out << header << endl;
         }
         return headers.size();
     }
