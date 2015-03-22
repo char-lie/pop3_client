@@ -10,6 +10,10 @@
 Just use `make all`.
 
 ## Usage
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3b40df6e1bd9148c2518fc2652ba31c283b83399
 ```
 Usage: pop3\_client [options]
 Allowed options:
