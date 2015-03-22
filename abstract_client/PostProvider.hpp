@@ -260,11 +260,21 @@ namespace post {
             /**
              * Get letters headers.
              * Allowed in state AUTHORIZED.
+             * @param headers Reference to vector where result will be stored.
              * @throws IncorrectStateException Thrown if not authorized.
-             * @return Vector of strings. Each string contains header of one
-             * letter.
              */
-            virtual strings getLettersHeaders () throw(PostException) = 0;
+            virtual void getLettersHeaders (strings& headers)
+                                      throw(PostException) = 0;
+            /**
+             * Get vector of strings with parameter values for every message.
+             * Allowed in state AUTHORIZED.
+             * @param headers Vector where result will be stored.
+             * @param parameterName The name of parameter which is needed to
+             * extract.
+             * @throws IncorrectStateException Thrown if not authorized.
+             */
+            void getLettersHeadersParameters (strings& parameters,
+                const string& parameterName) throw(PostException);
             /**
              * Set Transport Layer Provider.
              * Allowed in state DISCONNECTED.

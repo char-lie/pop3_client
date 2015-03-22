@@ -123,11 +123,22 @@ namespace mail_client {
             void signout () throw(MailClientException);
             /**
              * Get letters headers.
+             * @param headers Reference to vector where result will be stored.
              * @throws MailClientException Thrown if not authorized.
-             * @return Vector of strings. Each string contains header of one
-             * letter.
              */
-            strings getLettersHeaders () throw(MailClientException);
+            void getLettersHeaders (strings& headers)
+                              throw(MailClientException);
+            /**
+             * Get vector of strings with parameter values for every message.
+             * Allowed in state AUTHORIZED.
+             * @param headers Vector where result will be stored.
+             * @param parameterName The name of parameter which is needed to
+             * extract.
+             * @throws IncorrectStateException Thrown if not authorized.
+             */
+            void getLettersHeadersParameters (strings& parameters,
+                const string& parameterName) throw(MailClientException);
+
             /**
              * Set not null Post Provider.
              * @parameter postProvider Post Provider for communication with

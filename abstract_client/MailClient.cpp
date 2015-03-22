@@ -84,17 +84,33 @@ namespace mail_client {
         }
     }
 
-    strings MailClient::getLettersHeaders () throw(MailClientException) {
+    void MailClient::getLettersHeaders (strings& headers)
+                                  throw(MailClientException) {
         if (!this->isConnected()) {
             throw ClosedConnectionException();
         }
         try {
-            return this->postProvider->getLettersHeaders();
+            this->postProvider->getLettersHeaders(headers);
         }
         catch(const PostException& e) {
             throw MailClientException("An error occured: " + string(e.what()));
         }
     }
+
+    void MailClient::getLettersHeadersParameters (strings& parameters,
+               const string& parameterName) throw(MailClientException) {
+        if (!this->isConnected()) {
+            throw ClosedConnectionException();
+        }
+        try {
+            this->postProvider->getLettersHeadersParameters(parameters,
+                                                            parameterName);
+        }
+        catch(const PostException& e) {
+            throw MailClientException("An error occured: " + string(e.what()));
+        }
+    }
+
 
     void MailClient::signout () throw(MailClientException) {
         if (!this->isConnected()) {

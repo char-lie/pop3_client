@@ -36,12 +36,24 @@ namespace utils {
     }
 
     int getMessagesHeaders (const p_MC& mailClient, ostream& out) {
-        strings headers = mailClient->getLettersHeaders();
+        strings headers;
+        mailClient->getLettersHeaders(headers);
         for (string header : headers) {
             out << header << endl;
         }
         return headers.size();
     }
+
+    int getMessagesHeadersParameters (const p_MC& mailClient, ostream& out,
+                                      string parameterName) {
+        strings parameters;
+        mailClient->getLettersHeadersParameters(parameters, parameterName);
+        for (string parameter : parameters) {
+            out << parameter << endl;
+        }
+        return parameters.size();
+    }
+
 
     int getCommandLineParameters (int argumentsCount, char* arguments[],
                   string& host, string& port, string& login, string& password) {

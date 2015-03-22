@@ -28,15 +28,7 @@ namespace post {
              * @throws InvalidResponseException Thrown if server response
              * wasn't recognised as OK neither ERR.
              */
-            bool isResponseOK(string response)
-                        throw(PostException) {
-                if (response.find("+OK") != string::npos) {
-                    return true;
-                }
-                else if (response.find("-ERR") != string::npos) {
-                    return false;
-                }
-            }
+            bool isResponseOK(string response) throw(PostException);
         public:
             /**
              * Descriptions of further methods can be found in Post Privider
@@ -51,6 +43,6 @@ namespace post {
             void sendLogin (string login) throw(PostException);
             void sendPassword (string password) throw(PostException);
             void signout () throw(PostException);
-            strings getLettersHeaders () throw(PostException);
+            void getLettersHeaders (strings& headers) throw(PostException);
     };
 }

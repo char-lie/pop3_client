@@ -1,5 +1,6 @@
 #include "pop3.hpp"
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 using namespace boost;
 
@@ -12,6 +13,16 @@ namespace post {
     }
 
     POP3PostProvider::~POP3PostProvider () {
+    }
+
+
+    bool POP3PostProvider::isResponseOK(string response) throw(PostException) {
+        if (starts_with(response, "+OK")) {
+            return true;
+        }
+        else if (starts_with(response, "-ERR")) {
+            return false;
+        }
     }
 
     void POP3PostProvider::signin (string login, string password)
@@ -96,10 +107,11 @@ namespace post {
         }
     }
 
-    strings POP3PostProvider::getLettersHeaders () throw(PostException) {
-        strings strs;
+    void POP3PostProvider::getLettersHeaders (strings& headers)
+                                        throw(PostException) {
         strings emailsIDs;
         string response;
+        headers.clear();
 
         this->checkState(AUTHORIZED);
 
@@ -114,9 +126,8 @@ namespace post {
                 throw ConnectionException(message);
             }
             else {
-                strs.push_back(currentHeader);
+                headers.push_back(currentHeader);
             }
         }
-        return strs;
     }
 }

@@ -133,6 +133,24 @@ namespace post {
     bool PostProvider::isPasswordRequired () {
         return (this->state == PASSWORD_REQUIRED);
     }
+    
+    void PostProvider::getLettersHeadersParameters (strings& parameters,
+                      const string& parameterName) throw(PostException) {
+        strings headers;
+        parameters.clear();
+        int valueStart, valueLength;
+        this->getLettersHeaders(headers);
+        for (string header : headers) {
+            valueStart = header.find(parameterName + ": ");
+            if (valueStart == string::npos) {
+                parameters.push_back("\r\n");
+                continue;
+            }
+            valueStart += parameterName.size() + 2;
+            valueLength = header.find("\r\n", valueStart) - valueStart;
+            parameters.push_back(header.substr(valueStart, valueLength));
+        }
+    }
 
     // Other functions
     string stateToString (State state) throw(IncorrectStateException) {
