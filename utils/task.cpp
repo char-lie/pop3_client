@@ -114,7 +114,8 @@ namespace utils {
                                         outputFilename + ".");
             }
             out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-            cout << getMessagesHeaders(mailClient, out) << endl;
+            cout << getMessagesHeadersParameters(mailClient, out, "Subject")
+                 << endl;
             out.close();
         }
         catch (const ios_base::failure& e) {

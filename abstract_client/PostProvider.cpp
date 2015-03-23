@@ -143,7 +143,7 @@ namespace post {
         for (string header : headers) {
             valueStart = header.find(parameterName + ": ");
             if (valueStart == string::npos) {
-                parameters.push_back("\r\n");
+                parameters.push_back("");
                 continue;
             }
             valueStart += parameterName.size() + 2;

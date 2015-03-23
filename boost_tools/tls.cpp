@@ -20,7 +20,6 @@ void TLSTransportLayerProvider::connect (string server, string port)
                                         throw(TransportException) {
     this->checkConnectionState(false, "connect");
     system::error_code e;
-
     try {
         // Connect to server
         tcp::resolver resolver(this->i);
@@ -38,7 +37,6 @@ void TLSTransportLayerProvider::connect (string server, string port)
     catch (...) {
         throw ConnectionException("Unable provide handshake.");
     }
-
     // Get response from the server
     boost::asio::streambuf response;
     read(*(this->s), response, transfer_at_least(1), e);
